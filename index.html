@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UPI Payment Generator</title>
+  <!-- Tailwind CSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for a clean, modern look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Custom styles for the page */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Hide views by default */
+    .view {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+  <!-- View 1: Input form to generate a payment link -->
+  <div id="inputView" class="view container bg-white rounded-2xl shadow-lg max-w-sm w-full mx-auto p-6 md:p-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Create Payment Link</h1>
+    
+    <div class="space-y-4">
+      <div>
+        <label for="inputAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (INR)</label>
+        <input type="number" id="inputAmount" name="amount" placeholder="e.g., 150.50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div>
+        <label for="inputPhone" class="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+        <input type="tel" id="inputPhone" name="phone" placeholder="e.g., 919876543210" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+      </div>
+    </div>
+
+    <button id="generateBtn" class="mt-8 w-full bg-green-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-green-600 transition-colors duration-300 flex items-center justify-center space-x-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+      <span>Send via WhatsApp</span>
+    </button>
+    <p id="errorText" class="text-red-500 text-sm mt-4 text-center"></p>
+  </div>
+
+  <!-- View 2: Payment page -->
+  <div id="paymentView" class="view container bg-white rounded-2xl shadow-lg max-w-sm w-full mx-auto p-6 md:p-8 text-center">
+    
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Pay via UPI</h1>
+
+    <!-- Card for Amount and Receiver -->
+    <div class="card bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
+      <p class="text-sm text-gray-500">You are paying</p>
+      <p id="amountText" class="text-4xl font-bold text-gray-900 my-2"></p>
+      <p class="text-sm text-gray-500">to</p>
+      <p id="receiverName" class="text-lg font-semibold text-gray-800 mt-1"></p>
+    </div>
+
+    <!-- QR Code -->
+    <img id="qrCode" class="qr-code w-48 h-48 mx-auto rounded-lg mb-6" alt="UPI QR Code" />
+    
+    <!-- Main UPI Link -->
+    <a id="upiLink" target="_blank" class="btn main-link bg-blue-600 text-white w-full py-3 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors duration-300 block mb-6">
+      Pay with Any UPI App
+    </a>
+
+    <!-- Divider -->
+    <div class="relative flex py-2 items-center">
+        <div class="flex-grow border-t border-gray-300"></div>
+        <span class="flex-shrink mx-4 text-gray-400 text-sm">Or use a specific app</span>
+        <div class="flex-grow border-t border-gray-300"></div>
+    </div>
+
+    <!-- Specific App Buttons -->
+    <div class="btn-group grid grid-cols-3 gap-4 mt-4">
+      <a id="gpayBtn" class="btn app-btn flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" target="_blank">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/2560px-Google_Pay_Logo.svg.png" onerror="this.onerror=null; this.src='https://placehold.co/100x40/f0f0f0/333?text=GPay';" alt="Google Pay" class="h-8 mb-2 object-contain" />
+        <span class="text-xs font-medium text-gray-600">Google Pay</span>
+      </a>
+      <a id="phonepeBtn" class="btn app-btn flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" target="_blank">
+        <img src="https://logolook.net/wp-content/uploads/2023/05/PhonePe-Logo.png" onerror="this.onerror=null; this.src='https://placehold.co/100x40/f0f0f0/333?text=PhonePe';" alt="PhonePe" class="h-8 mb-2 object-contain" />
+        <span class="text-xs font-medium text-gray-600">PhonePe</span>
+      </a>
+      <a id="paytmBtn" class="btn app-btn flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" target="_blank">
+        <img src="https://i.postimg.cc/Dz58fqG8/Paytm-logo.png" onerror="this.onerror=null; this.src='https://placehold.co/100x40/f0f0f0/333?text=Paytm';" alt="Paytm" class="h-8 mb-2 object-contain" />
+        <span class="text-xs font-medium text-gray-600">Paytm</span>
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const amount = urlParams.get('amount');
+      
+      const inputView = document.getElementById('inputView');
+      const paymentView = document.getElementById('paymentView');
+
+      if (amount) {
+        // If amount exists in URL, show payment view
+        displayPaymentView(amount);
+      } else {
+        // Otherwise, show the input form view
+        displayInputView();
+      }
+    });
+
+    function displayInputView() {
+      const inputView = document.getElementById('inputView');
+      const paymentView = document.getElementById('paymentView');
+      const generateBtn = document.getElementById('generateBtn');
+      const errorText = document.getElementById('errorText');
+
+      paymentView.style.display = 'none';
+      inputView.style.display = 'block';
+
+      generateBtn.addEventListener('click', function() {
+        const inputAmount = document.getElementById('inputAmount').value;
+        const inputPhone = document.getElementById('inputPhone').value;
+        errorText.textContent = ''; // Clear previous errors
+
+        if (!inputAmount || !inputPhone) {
+          errorText.textContent = 'Please fill out both fields.';
+          return;
+        }
+        if (isNaN(parseFloat(inputAmount)) || parseFloat(inputAmount) <= 0) {
+          errorText.textContent = 'Please enter a valid amount.';
+          return;
+        }
+        if (!/^\d{10,15}$/.test(inputPhone)) {
+            errorText.textContent = 'Please enter a valid phone number (10-15 digits).';
+            return;
+        }
+
+
+        // Construct the payment URL
+        // It removes query string and hash from the current URL to start fresh
+        const baseUrl = window.location.href.split('?')[0].split('#')[0];
+        const paymentUrl = `${baseUrl}?amount=${parseFloat(inputAmount).toFixed(2)}`;
+
+        // Construct the WhatsApp message
+        const message = `Please pay ₹${inputAmount} to Gulab Beej Bhandar using this secure link:\n\n${paymentUrl}`;
+        const encodedMessage = encodeURIComponent(message);
+        
+        // Construct the WhatsApp URL
+        const whatsappUrl = `https://wa.me/${inputPhone}?text=${encodedMessage}`;
+        
+        // Open the WhatsApp link in a new tab
+        window.open(whatsappUrl, '_blank');
+      });
+    }
+
+    function displayPaymentView(amount) {
+      const inputView = document.getElementById('inputView');
+      const paymentView = document.getElementById('paymentView');
+
+      inputView.style.display = 'none';
+      paymentView.style.display = 'block';
+
+      // --- Payment Information ---
+      const upiId = "9255498957@okbizaxis";
+      const name = "Gulab Beej Bhandar";
+      const formattedAmount = parseFloat(amount).toFixed(2);
+      const upiLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${formattedAmount}&cu=INR`;
+
+      // Update the content of the elements
+      document.getElementById("amountText").textContent = `₹${formattedAmount}`;
+      document.getElementById("receiverName").textContent = name;
+      
+      const payButton = document.getElementById("upiLink");
+      payButton.href = upiLink;
+      payButton.textContent = `Pay ₹${formattedAmount}`;
+
+      // Generate the QR code with a fallback
+      const qrCodeImg = document.getElementById("qrCode");
+      qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiLink)}`;
+      qrCodeImg.onerror = function() {
+          this.onerror=null; // Prevent infinite loop if fallback also fails
+          this.src = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(upiLink)}`;
+      };
+
+      // Set specific app links
+      document.getElementById("gpayBtn").href = `gpay://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${formattedAmount}&cu=INR`;
+      document.getElementById("phonepeBtn").href = `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${formattedAmount}&cu=INR`;
+      document.getElementById("paytmBtn").href = `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${formattedAmount}&cu=INR`;
+    }
+  </script>
+</body>
+</html>
